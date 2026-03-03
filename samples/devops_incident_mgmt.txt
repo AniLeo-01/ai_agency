@@ -1,0 +1,35 @@
+We need an internal incident management platform for our engineering org (~200 engineers, ~15 services in production).
+
+Current pain: when something breaks at 2am, it's chaos. Someone posts in a random Slack channel, people scramble to figure out who owns what, there's no clear timeline of actions taken, and post-mortems are written weeks later (if at all) in a Google Doc nobody reads.
+
+Core requirements:
+
+Incident lifecycle:
+- Anyone can declare an incident from Slack (slash command) or from the web UI
+- Incident auto-creates a dedicated Slack channel, a war room video link (Zoom/Google Meet), and a status page entry
+- Assign roles: Incident Commander, Communications Lead, and responders. IC can be auto-assigned based on affected service ownership.
+- Severity levels: SEV1 (customer-impacting outage), SEV2 (degraded service), SEV3 (internal issue, no customer impact)
+- Real-time timeline: every action, message, and status change is logged automatically. Responders can add manual entries.
+- Status updates: IC pushes updates that go to the Slack channel, the status page, and optionally to an email list for stakeholders
+- Resolution: IC marks incident as resolved, captures root cause (one-liner), and schedules a post-mortem
+
+Post-mortem:
+- Auto-generated post-mortem template pre-filled with: timeline, affected services, severity, duration, responders, and status updates
+- Sections for: summary, root cause analysis (5 whys), contributing factors, action items with owners and due dates
+- Post-mortem review workflow: draft -> review -> approved -> published
+- Published post-mortems are searchable and browsable by the whole org
+
+Service catalog:
+- Each service has: name, team owner, Slack channel, runbook link, dependencies, on-call rotation (integrates with PagerDuty)
+- When an incident is declared, we auto-suggest the owning team based on the affected service
+
+Analytics:
+- MTTR (mean time to resolve) by severity and by team
+- Incident frequency over time
+- Repeat incidents (same root cause)
+- Post-mortem completion rate
+- On-call burden by team
+
+Integrations: Slack (primary interface), PagerDuty, Jira (for action items), GitHub (link to fixing PRs), Datadog/Grafana (link to dashboards).
+
+Must support SSO via Okta. All data retained for 2 years for compliance.

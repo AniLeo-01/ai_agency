@@ -1,12 +1,18 @@
-.PHONY: build test lint shell prd design pipeline clean help
+.PHONY: build test lint shell prd design pipeline clean help web web-dev
 
 IMAGE_NAME := ai-agency
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-build: ## Build the Docker image
+build: ## Build all Docker images
 	docker compose build
+
+web: ## Start the web UI (port 8080)
+	docker compose up web
+
+web-dev: ## Start the web UI in background with live reload
+	docker compose up -d web
 
 test: ## Run tests in container
 	docker compose run --rm test

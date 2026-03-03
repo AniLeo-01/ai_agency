@@ -6,16 +6,13 @@ WORKDIR /build
 # Install build dependencies
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Copy project metadata first (layer caching for deps)
+# Copy project metadata and source
 COPY pyproject.toml .
+COPY src/ src/
 
 # Install dependencies into a virtualenv
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --no-cache-dir .
-
-# Copy source and install the package itself
-COPY src/ src/
 RUN pip install --no-cache-dir .
 
 # Install dev dependencies (tests, linting) into the same venv
@@ -46,3 +43,11 @@ USER agency
 
 ENTRYPOINT ["ai-agency"]
 CMD ["--help"]
+
+# --- Stage 3: Web server ---
+FROM runtime AS web
+
+EXPOSE 8000
+
+ENTRYPOINT ["uvicorn"]
+CMD ["ai_agency.web.app:app", "--host", "0.0.0.0", "--port", "8000"]

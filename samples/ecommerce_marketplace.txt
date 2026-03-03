@@ -1,0 +1,26 @@
+We're building a niche e-commerce marketplace for independent furniture makers and artisan craftspeople to sell directly to consumers.
+
+Background: platforms like Etsy have become oversaturated with mass-produced dropshipped goods. Real artisans are getting buried. We want to build a curated marketplace where every seller is vetted and every piece is genuinely handmade.
+
+Seller side:
+- Application and vetting process: sellers submit a portfolio with photos, a description of their craft, and their workshop. Our team reviews and approves/rejects.
+- Seller dashboard: manage products (photos, description, dimensions, materials, price, shipping options, lead time), view orders, track revenue, respond to buyer messages.
+- Product listings support: up to 10 photos per product, a video embed, material tags, customization options (e.g., "choose wood finish: oak/walnut/cherry"), and made-to-order flag with estimated lead time.
+- Shipping integration: sellers enter package dimensions/weight, and we auto-calculate shipping via integration with major carriers. Support both domestic and international.
+
+Buyer side:
+- Browse by category (tables, chairs, lighting, decor, etc.), by material, by price range, by lead time, or by maker
+- Product pages with high-res image gallery, zoom, maker bio, reviews, and "ask the maker" messaging
+- Save favorites / wishlist
+- Cart and checkout with Stripe payments. Support guest checkout.
+- Order tracking: from "order placed" to "crafting" to "shipped" to "delivered"
+- Reviews and ratings after delivery (with photo uploads)
+
+Platform:
+- We take a 12% commission on each sale
+- Featured maker spotlights on the homepage (editorial content)
+- SEO-optimized product and maker pages
+- Admin dashboard: manage sellers (approve/suspend), moderate reviews, view platform-wide analytics (GMV, orders, new sellers, conversion rate)
+- Dispute resolution flow for damaged items or non-delivery
+
+This is web-first but the buyer experience must be excellent on mobile browsers. Native apps can come later.

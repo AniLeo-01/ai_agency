@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Agency</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-brand">
+        <h1>AI Agency</h1>
+        <p>Spec-to-Ship Pipeline</p>
+      </div>
+
+      <ul class="sidebar-nav">
+        <li><a href="#" data-section="section-pipeline" class="active"><span class="icon">&#9654;</span> Pipeline</a></li>
+        <li><a href="#" data-section="section-prd"><span class="icon">&#9998;</span> PRD Generator</a></li>
+        <li><a href="#" data-section="section-design"><span class="icon">&#9635;</span> Design Prompts</a></li>
+        <li><a href="#" data-section="section-results"><span class="icon">&#9745;</span> Results</a></li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="config-badge">
+          <span><span class="dot"></span> Provider: <strong id="config-provider">...</strong></span>
+          <span style="margin-left: 12px;">Model: <strong id="config-model">...</strong></span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main">
+
+      <!-- Pipeline Section -->
+      <div id="section-pipeline" class="section active">
+        <div class="page-header">
+          <h2>Full Pipeline</h2>
+          <p>Generate a PRD and design prompts in one step. Pick an example or write your own.</p>
+        </div>
+
+        <div class="section-label">Examples</div>
+        <div id="pipeline-examples" class="example-grid"></div>
+
+        <div class="section-label">Write your own</div>
+        <div class="card">
+          <div class="editor-area">
+            <div class="editor-toolbar">
+              <div class="editor-tabs">
+                <button class="editor-tab active" onclick="switchEditorMode(this, 'pipeline-input', 'pipeline-preview')">Write</button>
+                <button class="editor-tab" onclick="switchEditorMode(this, 'pipeline-input', 'pipeline-preview')">Preview</button>
+              </div>
+              <span class="editor-hint">Markdown supported</span>
+            </div>
+            <textarea id="pipeline-input" class="editor-textarea" placeholder="Describe your product idea, customer requirements, or feature descriptions...&#10;&#10;You can use **markdown** formatting:&#10;&#10;## Problem&#10;Describe the core problem...&#10;&#10;## Users&#10;- Primary user type&#10;- Secondary user type&#10;&#10;## Features&#10;1. Feature one&#10;2. Feature two"></textarea>
+            <div id="pipeline-preview" class="editor-preview markdown-view" style="display:none;"></div>
+          </div>
+          <div class="card-actions">
+            <button id="pipeline-btn" class="btn btn-primary" onclick="runPipeline()">
+              <span>&#9654;</span> Run Full Pipeline
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRD Generator Section -->
+      <div id="section-prd" class="section">
+        <div class="page-header">
+          <h2>PRD Generator</h2>
+          <p>Generate a structured Product Requirements Document. Pick an example or write your own.</p>
+        </div>
+
+        <div class="section-label">Examples</div>
+        <div id="prd-examples" class="example-grid"></div>
+
+        <div class="section-label">Write your own</div>
+        <div class="card">
+          <div class="editor-area">
+            <div class="editor-toolbar">
+              <div class="editor-tabs">
+                <button class="editor-tab active" onclick="switchEditorMode(this, 'prd-input', 'prd-preview')">Write</button>
+                <button class="editor-tab" onclick="switchEditorMode(this, 'prd-input', 'prd-preview')">Preview</button>
+              </div>
+              <span class="editor-hint">Markdown supported</span>
+            </div>
+            <textarea id="prd-input" class="editor-textarea" placeholder="Describe your product requirements here...&#10;&#10;The more detail you provide, the better the PRD. Include:&#10;- What problem are you solving and for whom?&#10;- What features do you need?&#10;- Any technical constraints or preferences?&#10;- Business model / pricing?"></textarea>
+            <div id="prd-preview" class="editor-preview markdown-view" style="display:none;"></div>
+          </div>
+          <div class="card-actions">
+            <button id="prd-generate-btn" class="btn btn-primary" onclick="generatePRD()">
+              <span>&#9998;</span> Generate PRD
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Design Prompts Section -->
+      <div id="section-design" class="section">
+        <div class="page-header">
+          <h2>Design Prompts</h2>
+          <p>Generate Google Stitch-ready UI design prompts from an existing PRD.</p>
+        </div>
+
+        <div class="card">
+          <p id="design-status" style="color: var(--text-dim); font-size: 0.87rem; margin-bottom: 16px;">
+            No PRD loaded. Generate a PRD first using the Pipeline or PRD Generator.
+          </p>
+          <button id="design-generate-btn" class="btn btn-primary" onclick="generateDesigns()">
+            <span>&#9635;</span> Generate Design Prompts
+          </button>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <div id="section-results" class="section">
+        <div class="page-header">
+          <h2 id="results-title">Results</h2>
+          <p id="results-subtitle">Generated output will appear here.</p>
+        </div>
+
+        <div id="results-content">
+          <div class="empty-state">
+            <div class="empty-icon">&#128196;</div>
+            <p>No results yet. Use the Pipeline, PRD Generator, or Design Prompts to get started.</p>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Loader Overlay -->
+  <div id="loader" class="loader-overlay">
+    <div class="loader-content">
+      <div class="spinner"></div>
+      <p id="loader-msg">Processing...</p>
+      <p class="loader-sub" id="loader-sub"></p>
+    </div>
+  </div>
+
+  <!-- Screen Prompt Modal -->
+  <div id="modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">Screen</h3>
+        <button class="modal-close" onclick="closeModal()">&#10005;</button>
+      </div>
+      <div class="modal-body" id="modal-body-content"></div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

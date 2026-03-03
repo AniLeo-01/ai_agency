@@ -16,7 +16,7 @@ class OpenAIProvider(LLMProvider):
     """GPT-powered structured generation via instructor."""
 
     def __init__(self) -> None:
-        raw_client = openai.OpenAI(api_key=get_api_key())
+        raw_client = openai.OpenAI(api_key=get_api_key(), timeout=600.0)
         self.client = instructor.from_openai(raw_client)
         self.model = get_model()
 

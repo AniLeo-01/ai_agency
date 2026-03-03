@@ -1,4 +1,18 @@
 services:
+  # Web UI: docker compose up web
+  web:
+    build:
+      context: .
+      target: web
+    ports:
+      - "8080:8000"
+    env_file: .env
+    volumes:
+      - ./output:/app/output
+      - ./src:/app/src
+      - ./samples:/app/samples
+    restart: unless-stopped
+
   # Run CLI commands: docker compose run --rm cli prd generate -t "Build a todo app"
   cli:
     build: .

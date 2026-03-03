@@ -1,0 +1,21 @@
+Build a SaaS team workspace tool for remote-first startups (10-50 people).
+
+The core problem: remote teams waste hours every week switching between Slack, Notion, Jira, and Google Docs. Context gets lost, decisions are buried in threads, and new hires take weeks to find anything.
+
+What we want:
+- A unified workspace where each project has its own space with docs, tasks, and discussions in one place
+- Real-time collaborative documents (like Notion but simpler — just headings, text, checklists, and embedded images)
+- A Kanban-style task board per project with assignees, due dates, priorities, and labels
+- A threaded discussion feed per project (not a chat — more like async updates and decisions)
+- A global search that searches across all docs, tasks, and discussions
+- An activity feed on the home page showing what changed across all your projects
+- User roles: workspace owner, admin, member, guest (view-only)
+- SSO with Google and GitHub for onboarding
+- Notifications: in-app and email digest (daily/weekly configurable)
+
+Nice to have:
+- Slash commands in docs to embed tasks or reference other docs
+- A "decisions log" per project that auto-collects messages marked as decisions
+- Weekly auto-generated summary email per project
+
+Target users are startup founders, engineering leads, and product managers who are tired of tool sprawl. We want to charge $12/user/month with a free tier for up to 5 users.

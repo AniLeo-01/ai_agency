@@ -16,7 +16,7 @@ class AnthropicProvider(LLMProvider):
     """Claude-powered structured generation via instructor."""
 
     def __init__(self) -> None:
-        raw_client = anthropic.Anthropic(api_key=get_api_key())
+        raw_client = anthropic.Anthropic(api_key=get_api_key(), timeout=600.0)
         self.client = instructor.from_anthropic(raw_client)
         self.model = get_model()
 

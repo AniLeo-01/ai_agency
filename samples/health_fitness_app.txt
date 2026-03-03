@@ -1,0 +1,17 @@
+We want to build a health and fitness tracking mobile app for people who are just starting their fitness journey — not gym bros, but regular people who want to get healthier.
+
+Problem: most fitness apps are overwhelming. They assume you already know what exercises to do, how to track macros, or what a "split" is. Beginners get intimidated and quit within 2 weeks.
+
+Our approach:
+- Guided daily workouts: the app suggests a workout each day based on your fitness level, available equipment (home/gym), and time (15/30/45 min). No decision fatigue.
+- Simple food logging: take a photo of your meal and AI estimates the calories and macros. Users can adjust if needed but shouldn't have to manually search a food database.
+- Progress tracking: weight, body measurements, workout streaks, and "consistency score" (we reward showing up, not just hitting PRs)
+- Weekly check-ins: a 2-minute questionnaire about how you're feeling, energy levels, sleep quality. The app adapts the workout plan based on recovery.
+- Social accountability: connect with friends, see each other's streaks (not details), and send encouragement ("kudos")
+- Educational content: short tips (30-second reads) that appear contextually — e.g., "why rest days matter" after 5 consecutive workout days
+
+Monetization: free tier with basic workouts. Premium ($9.99/month) unlocks AI meal analysis, custom workout plans, and detailed analytics.
+
+Target audience: adults 25-45, mostly female, who want to "get in shape" but don't identify as athletes. Think New Year's resolution crowd who we actually want to retain.
+
+Technical notes: must work offline for workout tracking (sync when back online). Push notifications for workout reminders and streak alerts. iOS and Android.

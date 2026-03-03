@@ -1,0 +1,19 @@
+I'm a freelance designer and I need a simple invoicing and payments tool built specifically for solo freelancers and small agencies (1-5 people).
+
+What sucks about existing tools: FreshBooks and QuickBooks are overkill — I don't need accounting, payroll, or inventory. I just need to send professional invoices, track who's paid, and get my money. Wave is free but clunky. Most tools charge per feature and nickel-and-dime you.
+
+What I want:
+- Create and send branded invoices in under 60 seconds. Pick a client, add line items (hourly or fixed), set due date, send. Done.
+- A dashboard showing: total outstanding, total overdue, revenue this month vs last month, and a list of recent invoices with status (draft/sent/viewed/paid/overdue)
+- Client management: save client details (company, contact, email, billing address, tax ID) so I don't retype them every time
+- Recurring invoices: set up monthly retainers that auto-generate and optionally auto-send
+- Payment links: each invoice has a "Pay Now" button. Support Stripe and PayPal. When they pay, the invoice auto-marks as paid and I get notified.
+- Expense tracking: snap a photo of a receipt, it OCRs the amount/vendor/date. I can tag expenses to projects or clients.
+- Tax time helper: export all income and expenses for a date range as CSV or PDF. Group by client, by month, or by category.
+- Multi-currency support: I have clients in USD, EUR, and GBP. Show amounts in their currency on invoices but track everything in my home currency.
+
+Don't need: time tracking (I use Toggl), project management, team features, accounting journal entries.
+
+Should look clean and minimal — think Linear or Stripe Dashboard aesthetic. Not a bloated enterprise tool.
+
+Pricing: $15/month flat. No per-invoice fees, no transaction fees on our end (Stripe/PayPal take their cut obviously).
