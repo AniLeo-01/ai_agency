@@ -1,0 +1,27 @@
+services:
+  # Run CLI commands: docker compose run --rm cli prd generate -t "Build a todo app"
+  cli:
+    build: .
+    env_file: .env
+    volumes:
+      - ./output:/app/output
+      - ./src:/app/src
+    entrypoint: ["ai-agency"]
+
+  # Run tests: docker compose run --rm test
+  test:
+    build: .
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    entrypoint: ["pytest"]
+    command: ["-v"]
+
+  # Run linter: docker compose run --rm lint
+  lint:
+    build: .
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    entrypoint: ["ruff"]
+    command: ["check", "src/", "tests/"]
