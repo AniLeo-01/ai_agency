@@ -1446,6 +1446,31 @@ textarea::placeholder {
   border-radius: 0 var(--radius) var(--radius) 0;
 }
 
+/* === Results Dashboard === */
+.result-section {
+  margin-bottom: 8px;
+}
+
+.result-not-run {
+  border-style: dashed;
+  background: transparent;
+}
+
+.result-not-run .card-header h3 {
+  color: var(--text-dim);
+  font-size: 0.93rem;
+}
+
+.result-not-run .card-header h3 .icon {
+  margin-right: 6px;
+}
+
+.result-not-run-desc {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  margin-bottom: 16px;
+}
+
 /* === Responsive === */
 @media (max-width: 900px) {
   .sidebar {

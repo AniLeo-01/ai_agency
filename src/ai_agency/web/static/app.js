@@ -20,6 +20,17 @@ let currentPRD = null;
 let currentDesigns = null;
 let samples = [];
 
+// Store results from each tool for the dashboard
+const resultsData = {
+  prd: null,       // { summary, prd_json, prd_markdown }
+  designs: null,   // { screens, screen_count }
+  market: null,    // { summary, analysis_json, analysis_markdown }
+  competitor: null, // { summary, analysis_json, analysis_markdown }
+  viability: null, // { summary, viability_json, viability_markdown }
+  roadmap: null,   // { summary, roadmap_json, roadmap_markdown }
+  pitch: null,     // { summary, deck_json, deck_markdown }
+};
+
 // Track which source each tool uses: 'text' or 'prd'
 const toolSource = {
   market: "text",
@@ -190,6 +201,21 @@ async function loadLatestPRD() {
       document.getElementById("design-status").style.color = "var(--success)";
       // Update all tool PRD statuses
       ["market", "competitor", "viability", "roadmap", "pitch"].forEach(updatePRDStatus);
+      // Show PRD in results dashboard (with minimal summary)
+      resultsData.prd = {
+        prd_json: data.prd_json,
+        prd_markdown: data.prd_markdown || "",
+        summary: {
+          product_name: data.prd_json?.product_overview?.name || "Unknown",
+          tagline: data.prd_json?.product_overview?.tagline || "",
+          features: (data.prd_json?.features || []).length,
+          api_endpoints: (data.prd_json?.api_endpoints || []).length,
+          data_models: (data.prd_json?.data_models || []).length,
+          personas: (data.prd_json?.user_personas || []).length,
+          journeys: (data.prd_json?.user_journeys || []).length,
+        },
+      };
+      refreshResultsDashboard();
     }
   } catch {
     // ignore
@@ -242,10 +268,11 @@ async function generatePRD() {
     }
 
     currentPRD = data.prd_json;
+    resultsData.prd = data;
     // Update all tool PRD statuses
     ["market", "competitor", "viability", "roadmap", "pitch"].forEach(updatePRDStatus);
     toast("PRD generated successfully!");
-    renderPRDResults(data);
+    refreshResultsDashboard();
     navigate("section-results");
   } catch (err) {
     hideLoader();
@@ -281,9 +308,11 @@ async function runPipeline() {
 
     currentPRD = data.prd_json;
     currentDesigns = data.screens;
+    resultsData.prd = data;
+    resultsData.designs = data;
     ["market", "competitor", "viability", "roadmap", "pitch"].forEach(updatePRDStatus);
     toast("Pipeline complete!");
-    renderPipelineResults(data);
+    refreshResultsDashboard();
     navigate("section-results");
   } catch (err) {
     hideLoader();
@@ -310,8 +339,9 @@ async function generateDesigns() {
     }
 
     currentDesigns = data.screens;
+    resultsData.designs = data;
     toast(`Generated ${data.screen_count} design prompts!`);
-    renderDesignResults(data);
+    refreshResultsDashboard();
     navigate("section-results");
   } catch (err) {
     hideLoader();
@@ -342,8 +372,9 @@ async function generateMarketAnalysis() {
       return;
     }
 
+    resultsData.market = data;
     toast("Market Analysis complete!");
-    renderMarketAnalysisResults(data);
+    refreshResultsDashboard();
     navigate("section-results");
   } catch (err) {
     hideLoader();
@@ -374,8 +405,9 @@ async function generateCompetitorAnalysis() {
       return;
     }
 
+    resultsData.competitor = data;
     toast("Competitor Analysis complete!");
-    renderCompetitorAnalysisResults(data);
+    refreshResultsDashboard();
     navigate("section-results");
   } catch (err) {
     hideLoader();
@@ -406,8 +438,9 @@ async function generateViability() {
       return;
     }
 
+    resultsData.viability = data;
     toast("Viability Assessment complete!");
-    renderViabilityResults(data);
+    refreshResultsDashboard();
     navigate("section-results");
   } catch (err) {
     hideLoader();
@@ -438,8 +471,9 @@ async function generateRoadmap() {
       return;
     }
 
+    resultsData.roadmap = data;
     toast("Product Roadmap generated!");
-    renderRoadmapResults(data);
+    refreshResultsDashboard();
     navigate("section-results");
   } catch (err) {
     hideLoader();
@@ -470,8 +504,9 @@ async function generatePitchDeck() {
       return;
     }
 
+    resultsData.pitch = data;
     toast("Pitch Deck generated!");
-    renderPitchDeckResults(data);
+    refreshResultsDashboard();
     navigate("section-results");
   } catch (err) {
     hideLoader();
@@ -480,54 +515,99 @@ async function generatePitchDeck() {
   }
 }
 
-// --- Rendering: PRD ---
-function renderPRDResults(data) {
-  const container = document.getElementById("results-content");
+// --- Results Dashboard ---
+// Central function that renders all tool results into the dashboard
+function refreshResultsDashboard() {
+  const hasAny = Object.values(resultsData).some((v) => v !== null);
+  document.getElementById("results-empty").style.display = hasAny ? "none" : "block";
+  document.getElementById("results-dashboard").style.display = hasAny ? "block" : "none";
 
-  const statsHTML = `
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-value">${data.summary.features}</div><div class="stat-label">Features</div></div>
-      <div class="stat-card"><div class="stat-value">${data.summary.api_endpoints}</div><div class="stat-label">API Endpoints</div></div>
-      <div class="stat-card"><div class="stat-value">${data.summary.data_models}</div><div class="stat-label">Data Models</div></div>
-      <div class="stat-card"><div class="stat-value">${data.summary.personas}</div><div class="stat-label">Personas</div></div>
-      <div class="stat-card"><div class="stat-value">${data.summary.journeys}</div><div class="stat-label">Journeys</div></div>
+  renderResultPRD();
+  renderResultDesigns();
+  renderResultMarket();
+  renderResultCompetitor();
+  renderResultViability();
+  renderResultRoadmap();
+  renderResultPitch();
+}
+
+// Helper: render a "not run yet" placeholder with a Run button
+function renderNotRunCard(title, icon, description, onclickFn) {
+  return `
+    <div class="card result-not-run">
+      <div class="card-header">
+        <h3><span class="icon">${icon}</span> ${escapeHTML(title)}</h3>
+      </div>
+      <p class="result-not-run-desc">${escapeHTML(description)}</p>
+      <div class="card-actions">
+        <button class="btn btn-secondary btn-sm" onclick="${onclickFn}">
+          <span>${icon}</span> Run ${escapeHTML(title)}
+        </button>
+      </div>
     </div>
   `;
+}
+
+// --- Render: PRD section in dashboard ---
+function renderResultPRD() {
+  const container = document.getElementById("result-prd");
+  const data = resultsData.prd;
+
+  if (!data) {
+    container.innerHTML = renderNotRunCard(
+      "PRD Generator", "&#9998;",
+      "Generate a structured Product Requirements Document from your idea.",
+      "navigate('section-prd')"
+    );
+    return;
+  }
 
   container.innerHTML = `
     <div class="card">
       <div class="card-header">
-        <h3>${escapeHTML(data.summary.product_name)}</h3>
-        <button class="btn btn-primary btn-sm" onclick="generateDesigns()">Generate Designs</button>
+        <h3><span class="icon">&#9998;</span> ${escapeHTML(data.summary.product_name)}</h3>
+        <span class="badge badge-accent">PRD</span>
       </div>
       <p style="color: var(--text-muted); font-size: 0.87rem; margin-bottom: 20px;">${escapeHTML(data.summary.tagline)}</p>
-      ${statsHTML}
-      <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab(this, 'tab-md')">Document</button>
-        <button class="tab-btn" onclick="switchTab(this, 'tab-json')">JSON</button>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value">${data.summary.features}</div><div class="stat-label">Features</div></div>
+        <div class="stat-card"><div class="stat-value">${data.summary.api_endpoints}</div><div class="stat-label">API Endpoints</div></div>
+        <div class="stat-card"><div class="stat-value">${data.summary.data_models}</div><div class="stat-label">Data Models</div></div>
+        <div class="stat-card"><div class="stat-value">${data.summary.personas}</div><div class="stat-label">Personas</div></div>
+        <div class="stat-card"><div class="stat-value">${data.summary.journeys}</div><div class="stat-label">Journeys</div></div>
       </div>
-      <div id="tab-md" class="tab-content active">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this, 'tab-prd-md')">Document</button>
+        <button class="tab-btn" onclick="switchTab(this, 'tab-prd-json')">JSON</button>
+      </div>
+      <div id="tab-prd-md" class="tab-content active">
         <div class="markdown-view">${renderMarkdown(data.prd_markdown)}</div>
       </div>
-      <div id="tab-json" class="tab-content">
+      <div id="tab-prd-json" class="tab-content">
         <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
-          <button class="copy-btn" onclick="copyJSON()">Copy JSON</button>
+          <button class="copy-btn" onclick="copyFromBlock(this)">Copy JSON</button>
         </div>
-        <div class="output-block" id="json-output">${escapeHTML(JSON.stringify(data.prd_json, null, 2))}</div>
+        <div class="output-block json-block">${escapeHTML(JSON.stringify(data.prd_json, null, 2))}</div>
       </div>
     </div>
   `;
-
-  document.getElementById("results-title").textContent = "PRD Results";
-  document.getElementById("results-subtitle").textContent =
-    `Generated PRD for "${data.summary.product_name}"`;
 }
 
-// --- Rendering: Design ---
-function renderDesignResults(data) {
-  const container = document.getElementById("results-content");
-  const screens = Object.entries(data.screens);
+// --- Render: Design Prompts section in dashboard ---
+function renderResultDesigns() {
+  const container = document.getElementById("result-designs");
+  const data = resultsData.designs;
 
+  if (!data) {
+    container.innerHTML = renderNotRunCard(
+      "Design Prompts", "&#9635;",
+      "Generate UI design prompts from a PRD. Requires a PRD first.",
+      "navigate('section-design')"
+    );
+    return;
+  }
+
+  const screens = Object.entries(data.screens);
   const cardsHTML = screens
     .map(
       ([name, prompt]) => `
@@ -542,85 +622,31 @@ function renderDesignResults(data) {
   container.innerHTML = `
     <div class="card">
       <div class="card-header">
-        <h3>Design Prompts</h3>
-        <span style="color: var(--text-muted); font-size: 0.82rem;">${screens.length} screens</span>
+        <h3><span class="icon">&#9635;</span> Design Prompts</h3>
+        <span class="badge badge-accent">${screens.length} screens</span>
       </div>
       <div class="screen-grid">${cardsHTML}</div>
     </div>
   `;
-
-  document.getElementById("results-title").textContent = "Design Prompts";
-  document.getElementById("results-subtitle").textContent =
-    `${screens.length} screen designs generated`;
 }
 
-// --- Rendering: Pipeline ---
-function renderPipelineResults(data) {
-  const container = document.getElementById("results-content");
-  const screens = Object.entries(data.screens);
+// --- Render: Market Analysis section in dashboard ---
+function renderResultMarket() {
+  const container = document.getElementById("result-market");
+  const data = resultsData.market;
 
-  const statsHTML = `
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-value">${data.summary.features}</div><div class="stat-label">Features</div></div>
-      <div class="stat-card"><div class="stat-value">${data.summary.api_endpoints}</div><div class="stat-label">API Endpoints</div></div>
-      <div class="stat-card"><div class="stat-value">${data.summary.data_models}</div><div class="stat-label">Data Models</div></div>
-      <div class="stat-card"><div class="stat-value">${data.summary.personas}</div><div class="stat-label">Personas</div></div>
-      <div class="stat-card"><div class="stat-value">${data.summary.screens}</div><div class="stat-label">Screens</div></div>
-    </div>
-  `;
+  if (!data) {
+    container.innerHTML = renderNotRunCard(
+      "Market Analysis", "&#9650;",
+      "Analyze TAM/SAM/SOM, market trends, and opportunity scores.",
+      "navigate('section-market')"
+    );
+    return;
+  }
 
-  const cardsHTML = screens
-    .map(
-      ([name, prompt]) => `
-    <div class="screen-card" onclick="showScreenModal('${escapeAttr(name)}')">
-      <h4>${escapeHTML(name)}</h4>
-      <p>${escapeHTML(prompt.substring(0, 150))}...</p>
-    </div>
-  `
-    )
-    .join("");
-
-  container.innerHTML = `
-    <div class="card">
-      <div class="card-header">
-        <h3>${escapeHTML(data.summary.product_name)}</h3>
-      </div>
-      <p style="color: var(--text-muted); font-size: 0.87rem; margin-bottom: 20px;">${escapeHTML(data.summary.tagline)}</p>
-      ${statsHTML}
-
-      <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab(this, 'tab-md')">PRD Document</button>
-        <button class="tab-btn" onclick="switchTab(this, 'tab-json')">PRD JSON</button>
-        <button class="tab-btn" onclick="switchTab(this, 'tab-designs')">Design Prompts</button>
-      </div>
-
-      <div id="tab-md" class="tab-content active">
-        <div class="markdown-view">${renderMarkdown(data.prd_markdown)}</div>
-      </div>
-      <div id="tab-json" class="tab-content">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
-          <button class="copy-btn" onclick="copyJSON()">Copy JSON</button>
-        </div>
-        <div class="output-block" id="json-output">${escapeHTML(JSON.stringify(data.prd_json, null, 2))}</div>
-      </div>
-      <div id="tab-designs" class="tab-content">
-        <div class="screen-grid">${cardsHTML}</div>
-      </div>
-    </div>
-  `;
-
-  document.getElementById("results-title").textContent = "Pipeline Results";
-  document.getElementById("results-subtitle").textContent =
-    `Full pipeline output for "${data.summary.product_name}"`;
-}
-
-// --- Rendering: Market Analysis ---
-function renderMarketAnalysisResults(data) {
-  const container = document.getElementById("results-content");
   const s = data.summary;
   const aj = data.analysis_json;
 
-  // Build opportunity score bars
   const scoresHTML = (aj.opportunity_scores || [])
     .map(
       (o) => `
@@ -634,7 +660,6 @@ function renderMarketAnalysisResults(data) {
     )
     .join("");
 
-  // Build market sizing funnel
   const funnelHTML = `
     <div class="market-funnel">
       <div class="funnel-level funnel-tam"><div class="funnel-label">TAM</div><div class="funnel-value">${escapeHTML(s.tam)}</div></div>
@@ -643,7 +668,6 @@ function renderMarketAnalysisResults(data) {
     </div>
   `;
 
-  // Build projection table
   const projHTML = (aj.projections || [])
     .map(
       (p) =>
@@ -654,7 +678,7 @@ function renderMarketAnalysisResults(data) {
   container.innerHTML = `
     <div class="card">
       <div class="card-header">
-        <h3>Market Analysis</h3>
+        <h3><span class="icon">&#9650;</span> Market Analysis</h3>
         <span class="badge badge-accent">${s.segments} segments | ${s.trends} trends</span>
       </div>
       <p style="color: var(--text-muted); font-size: 0.87rem; margin-bottom: 20px;">${escapeHTML(aj.executive_summary || "")}</p>
@@ -696,24 +720,31 @@ function renderMarketAnalysisResults(data) {
       </div>
       <div id="tab-market-json" class="tab-content">
         <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
-          <button class="copy-btn" onclick="copyJSON()">Copy JSON</button>
+          <button class="copy-btn" onclick="copyFromBlock(this)">Copy JSON</button>
         </div>
-        <div class="output-block" id="json-output">${escapeHTML(JSON.stringify(aj, null, 2))}</div>
+        <div class="output-block json-block">${escapeHTML(JSON.stringify(aj, null, 2))}</div>
       </div>
     </div>
   `;
-
-  document.getElementById("results-title").textContent = "Market Analysis";
-  document.getElementById("results-subtitle").textContent = "Market sizing, trends, and opportunity assessment";
 }
 
-// --- Rendering: Competitor Analysis ---
-function renderCompetitorAnalysisResults(data) {
-  const container = document.getElementById("results-content");
+// --- Render: Competitor Analysis section in dashboard ---
+function renderResultCompetitor() {
+  const container = document.getElementById("result-competitor");
+  const data = resultsData.competitor;
+
+  if (!data) {
+    container.innerHTML = renderNotRunCard(
+      "Competitor Analysis", "&#9878;",
+      "Profile competitors, compare features, and build a SWOT analysis.",
+      "navigate('section-competitor')"
+    );
+    return;
+  }
+
   const s = data.summary;
   const aj = data.analysis_json;
 
-  // Feature matrix
   const compNames = (aj.competitors || []).map((c) => c.name);
   const matrixHeaderHTML = compNames.map((n) => `<th>${escapeHTML(n)}</th>`).join("");
   const matrixRowsHTML = (aj.feature_matrix || [])
@@ -730,12 +761,11 @@ function renderCompetitorAnalysisResults(data) {
     })
     .join("");
 
-  // SWOT quadrant
   const swotHTML = `
     <div class="swot-grid">
       <div class="swot-quadrant swot-strengths">
         <h4>Strengths</h4>
-        ${(aj.swot?.strengths || []).map((s) => `<div class="swot-item"><span class="swot-impact">${s.impact}</span> ${escapeHTML(s.item)}</div>`).join("")}
+        ${(aj.swot?.strengths || []).map((si) => `<div class="swot-item"><span class="swot-impact">${si.impact}</span> ${escapeHTML(si.item)}</div>`).join("")}
       </div>
       <div class="swot-quadrant swot-weaknesses">
         <h4>Weaknesses</h4>
@@ -755,7 +785,7 @@ function renderCompetitorAnalysisResults(data) {
   container.innerHTML = `
     <div class="card">
       <div class="card-header">
-        <h3>Competitor Analysis</h3>
+        <h3><span class="icon">&#9878;</span> Competitor Analysis</h3>
         <span class="badge badge-accent">${s.competitors} competitors | ${s.features_compared} features</span>
       </div>
       <p style="color: var(--text-muted); font-size: 0.87rem; margin-bottom: 20px;">${escapeHTML(aj.executive_summary || "")}</p>
@@ -797,20 +827,28 @@ function renderCompetitorAnalysisResults(data) {
       </div>
       <div id="tab-comp-json" class="tab-content">
         <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
-          <button class="copy-btn" onclick="copyJSON()">Copy JSON</button>
+          <button class="copy-btn" onclick="copyFromBlock(this)">Copy JSON</button>
         </div>
-        <div class="output-block" id="json-output">${escapeHTML(JSON.stringify(aj, null, 2))}</div>
+        <div class="output-block json-block">${escapeHTML(JSON.stringify(aj, null, 2))}</div>
       </div>
     </div>
   `;
-
-  document.getElementById("results-title").textContent = "Competitor Analysis";
-  document.getElementById("results-subtitle").textContent = "Competitive landscape and positioning";
 }
 
-// --- Rendering: Viability ---
-function renderViabilityResults(data) {
-  const container = document.getElementById("results-content");
+// --- Render: Viability section in dashboard ---
+function renderResultViability() {
+  const container = document.getElementById("result-viability");
+  const data = resultsData.viability;
+
+  if (!data) {
+    container.innerHTML = renderNotRunCard(
+      "Viability Assessment", "&#9881;",
+      "Assess technical feasibility, resource needs, risks, and viability.",
+      "navigate('section-viability')"
+    );
+    return;
+  }
+
   const s = data.summary;
   const vj = data.viability_json;
 
@@ -818,7 +856,6 @@ function renderViabilityResults(data) {
     s.verdict === "viable" ? "verdict-good" :
     s.verdict === "conditionally_viable" ? "verdict-caution" : "verdict-bad";
 
-  // Viability scores bars
   const scoresHTML = (vj.viability_scores || [])
     .map(
       (vs) => `
@@ -832,7 +869,6 @@ function renderViabilityResults(data) {
     )
     .join("");
 
-  // Risk matrix
   const risksHTML = (vj.risks || [])
     .map(
       (r) => {
@@ -845,7 +881,7 @@ function renderViabilityResults(data) {
   container.innerHTML = `
     <div class="card">
       <div class="card-header">
-        <h3>Product Viability Assessment</h3>
+        <h3><span class="icon">&#9881;</span> Product Viability</h3>
         <span class="badge ${verdictClass}">${s.verdict.replace(/_/g, " ").toUpperCase()}</span>
       </div>
       <p style="color: var(--text-muted); font-size: 0.87rem; margin-bottom: 20px;">${escapeHTML(vj.executive_summary || "")}</p>
@@ -895,25 +931,31 @@ function renderViabilityResults(data) {
       </div>
       <div id="tab-via-json" class="tab-content">
         <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
-          <button class="copy-btn" onclick="copyJSON()">Copy JSON</button>
+          <button class="copy-btn" onclick="copyFromBlock(this)">Copy JSON</button>
         </div>
-        <div class="output-block" id="json-output">${escapeHTML(JSON.stringify(vj, null, 2))}</div>
+        <div class="output-block json-block">${escapeHTML(JSON.stringify(vj, null, 2))}</div>
       </div>
     </div>
   `;
-
-  document.getElementById("results-title").textContent = "Viability Assessment";
-  document.getElementById("results-subtitle").textContent =
-    `${s.verdict.replace(/_/g, " ")} — ${s.score_pct}% viability score`;
 }
 
-// --- Rendering: Roadmap ---
-function renderRoadmapResults(data) {
-  const container = document.getElementById("results-content");
+// --- Render: Roadmap section in dashboard ---
+function renderResultRoadmap() {
+  const container = document.getElementById("result-roadmap");
+  const data = resultsData.roadmap;
+
+  if (!data) {
+    container.innerHTML = renderNotRunCard(
+      "Product Roadmap", "&#9776;",
+      "Generate a phased roadmap with milestones, timelines, and dependencies.",
+      "navigate('section-roadmap')"
+    );
+    return;
+  }
+
   const s = data.summary;
   const rj = data.roadmap_json;
 
-  // Timeline visualization
   const phasesHTML = (rj.phases || [])
     .map(
       (phase) => {
@@ -949,7 +991,7 @@ function renderRoadmapResults(data) {
   container.innerHTML = `
     <div class="card">
       <div class="card-header">
-        <h3>Product Roadmap</h3>
+        <h3><span class="icon">&#9776;</span> Product Roadmap</h3>
         <span class="badge badge-accent">${s.phases} phases | ${s.total_features} features</span>
       </div>
       <p style="color: var(--text-muted); font-size: 0.87rem; margin-bottom: 8px;">${escapeHTML(rj.executive_summary || "")}</p>
@@ -976,25 +1018,31 @@ function renderRoadmapResults(data) {
       </div>
       <div id="tab-road-json" class="tab-content">
         <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
-          <button class="copy-btn" onclick="copyJSON()">Copy JSON</button>
+          <button class="copy-btn" onclick="copyFromBlock(this)">Copy JSON</button>
         </div>
-        <div class="output-block" id="json-output">${escapeHTML(JSON.stringify(rj, null, 2))}</div>
+        <div class="output-block json-block">${escapeHTML(JSON.stringify(rj, null, 2))}</div>
       </div>
     </div>
   `;
-
-  document.getElementById("results-title").textContent = "Product Roadmap";
-  document.getElementById("results-subtitle").textContent =
-    `${s.phases} phases over ${s.total_duration}`;
 }
 
-// --- Rendering: Pitch Deck ---
-function renderPitchDeckResults(data) {
-  const container = document.getElementById("results-content");
+// --- Render: Pitch Deck section in dashboard ---
+function renderResultPitch() {
+  const container = document.getElementById("result-pitch");
+  const data = resultsData.pitch;
+
+  if (!data) {
+    container.innerHTML = renderNotRunCard(
+      "Pitch Deck", "&#9733;",
+      "Generate a slide-by-slide investor pitch deck with speaker notes.",
+      "navigate('section-pitch')"
+    );
+    return;
+  }
+
   const s = data.summary;
   const dj = data.deck_json;
 
-  // Slide cards
   const slidesHTML = (dj.slides || [])
     .map(
       (slide) => `
@@ -1008,10 +1056,13 @@ function renderPitchDeckResults(data) {
     )
     .join("");
 
+  // Store deck data for modal
+  window._currentDeck = dj;
+
   container.innerHTML = `
     <div class="card">
       <div class="card-header">
-        <h3>${escapeHTML(s.company_name)} — Pitch Deck</h3>
+        <h3><span class="icon">&#9733;</span> ${escapeHTML(s.company_name)} — Pitch Deck</h3>
         <span class="badge badge-accent">${s.slides} slides</span>
       </div>
       <p style="color: var(--text-muted); font-size: 0.87rem; margin-bottom: 8px;"><em>${escapeHTML(s.tagline)}</em></p>
@@ -1037,19 +1088,12 @@ function renderPitchDeckResults(data) {
       </div>
       <div id="tab-pitch-json" class="tab-content">
         <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
-          <button class="copy-btn" onclick="copyJSON()">Copy JSON</button>
+          <button class="copy-btn" onclick="copyFromBlock(this)">Copy JSON</button>
         </div>
-        <div class="output-block" id="json-output">${escapeHTML(JSON.stringify(dj, null, 2))}</div>
+        <div class="output-block json-block">${escapeHTML(JSON.stringify(dj, null, 2))}</div>
       </div>
     </div>
   `;
-
-  // Store deck data for modal
-  window._currentDeck = dj;
-
-  document.getElementById("results-title").textContent = "Pitch Deck";
-  document.getElementById("results-subtitle").textContent =
-    `${s.slides}-slide deck for ${s.company_name}`;
 }
 
 function showSlideModal(slideNumber) {
@@ -1121,6 +1165,15 @@ function copyJSON() {
   const json = document.getElementById("json-output")?.textContent;
   if (json) {
     navigator.clipboard.writeText(json);
+    toast("JSON copied to clipboard");
+  }
+}
+
+function copyFromBlock(btn) {
+  const card = btn.closest(".card");
+  const block = card.querySelector(".json-block");
+  if (block) {
+    navigator.clipboard.writeText(block.textContent);
     toast("JSON copied to clipboard");
   }
 }

@@ -275,15 +275,30 @@
       <!-- Results Section -->
       <div id="section-results" class="section">
         <div class="page-header">
-          <h2 id="results-title">Results</h2>
-          <p id="results-subtitle">Generated output will appear here.</p>
+          <h2>Results Dashboard</h2>
+          <p>All generated outputs in one place. Run any missing tools directly from here.</p>
         </div>
 
-        <div id="results-content">
-          <div class="empty-state">
-            <div class="empty-icon">&#128196;</div>
-            <p>No results yet. Use the Pipeline, PRD Generator, or any analysis tool to get started.</p>
-          </div>
+        <div id="results-empty" class="empty-state">
+          <div class="empty-icon">&#128196;</div>
+          <p>No results yet. Use the Pipeline, PRD Generator, or any analysis tool to get started.</p>
+        </div>
+
+        <div id="results-dashboard" style="display:none;">
+          <!-- PRD -->
+          <div id="result-prd" class="result-section"></div>
+          <!-- Design Prompts -->
+          <div id="result-designs" class="result-section"></div>
+          <!-- Market Analysis -->
+          <div id="result-market" class="result-section"></div>
+          <!-- Competitor Analysis -->
+          <div id="result-competitor" class="result-section"></div>
+          <!-- Viability -->
+          <div id="result-viability" class="result-section"></div>
+          <!-- Roadmap -->
+          <div id="result-roadmap" class="result-section"></div>
+          <!-- Pitch Deck -->
+          <div id="result-pitch" class="result-section"></div>
         </div>
       </div>
 
