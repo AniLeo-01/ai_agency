@@ -22,6 +22,13 @@
         <li><a href="#" data-section="section-pipeline" class="active"><span class="icon">&#9654;</span> Pipeline</a></li>
         <li><a href="#" data-section="section-prd"><span class="icon">&#9998;</span> PRD Generator</a></li>
         <li><a href="#" data-section="section-design"><span class="icon">&#9635;</span> Design Prompts</a></li>
+        <li class="sidebar-divider"></li>
+        <li><a href="#" data-section="section-market"><span class="icon">&#9650;</span> Market Analysis</a></li>
+        <li><a href="#" data-section="section-competitor"><span class="icon">&#9878;</span> Competitors</a></li>
+        <li><a href="#" data-section="section-viability"><span class="icon">&#9881;</span> Viability</a></li>
+        <li><a href="#" data-section="section-roadmap"><span class="icon">&#9776;</span> Roadmap</a></li>
+        <li><a href="#" data-section="section-pitch"><span class="icon">&#9733;</span> Pitch Deck</a></li>
+        <li class="sidebar-divider"></li>
         <li><a href="#" data-section="section-results"><span class="icon">&#9745;</span> Results</a></li>
       </ul>
 
@@ -118,6 +125,156 @@
         </div>
       </div>
 
+      <!-- Market Analysis Section -->
+      <div id="section-market" class="section">
+        <div class="page-header">
+          <h2>Market Analysis</h2>
+          <p>Analyze market size (TAM/SAM/SOM), trends, opportunity scores, and growth projections.</p>
+        </div>
+
+        <div class="section-label">Examples</div>
+        <div id="market-examples" class="example-grid"></div>
+
+        <div class="section-label">Describe your product</div>
+        <div class="card">
+          <div class="tool-source-toggle">
+            <button class="source-btn active" onclick="toggleToolSource(this, 'market', 'text')">From text</button>
+            <button class="source-btn" onclick="toggleToolSource(this, 'market', 'prd')">From PRD</button>
+          </div>
+          <div id="market-text-input" class="tool-input-area">
+            <textarea id="market-input" class="editor-textarea" placeholder="Describe your product idea, target market, and what problem it solves..."></textarea>
+          </div>
+          <div id="market-prd-input" class="tool-input-area" style="display:none;">
+            <p class="prd-source-status" id="market-prd-status">No PRD loaded. Generate one first.</p>
+          </div>
+          <div class="card-actions">
+            <button id="market-btn" class="btn btn-primary" onclick="generateMarketAnalysis()">
+              <span>&#9650;</span> Run Market Analysis
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Competitor Analysis Section -->
+      <div id="section-competitor" class="section">
+        <div class="page-header">
+          <h2>Competitor Analysis</h2>
+          <p>Profile competitors, compare features, SWOT analysis, and positioning strategy.</p>
+        </div>
+
+        <div class="section-label">Examples</div>
+        <div id="competitor-examples" class="example-grid"></div>
+
+        <div class="section-label">Describe your product</div>
+        <div class="card">
+          <div class="tool-source-toggle">
+            <button class="source-btn active" onclick="toggleToolSource(this, 'competitor', 'text')">From text</button>
+            <button class="source-btn" onclick="toggleToolSource(this, 'competitor', 'prd')">From PRD</button>
+          </div>
+          <div id="competitor-text-input" class="tool-input-area">
+            <textarea id="competitor-input" class="editor-textarea" placeholder="Describe your product and the market space you're entering..."></textarea>
+          </div>
+          <div id="competitor-prd-input" class="tool-input-area" style="display:none;">
+            <p class="prd-source-status" id="competitor-prd-status">No PRD loaded. Generate one first.</p>
+          </div>
+          <div class="card-actions">
+            <button id="competitor-btn" class="btn btn-primary" onclick="generateCompetitorAnalysis()">
+              <span>&#9878;</span> Run Competitor Analysis
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Viability Section -->
+      <div id="section-viability" class="section">
+        <div class="page-header">
+          <h2>Product Viability</h2>
+          <p>Assess technical feasibility, resource needs, risks, and overall viability given current technology.</p>
+        </div>
+
+        <div class="section-label">Examples</div>
+        <div id="viability-examples" class="example-grid"></div>
+
+        <div class="section-label">Describe your product</div>
+        <div class="card">
+          <div class="tool-source-toggle">
+            <button class="source-btn active" onclick="toggleToolSource(this, 'viability', 'text')">From text</button>
+            <button class="source-btn" onclick="toggleToolSource(this, 'viability', 'prd')">From PRD</button>
+          </div>
+          <div id="viability-text-input" class="tool-input-area">
+            <textarea id="viability-input" class="editor-textarea" placeholder="Describe your product, technical requirements, and constraints..."></textarea>
+          </div>
+          <div id="viability-prd-input" class="tool-input-area" style="display:none;">
+            <p class="prd-source-status" id="viability-prd-status">No PRD loaded. Generate one first.</p>
+          </div>
+          <div class="card-actions">
+            <button id="viability-btn" class="btn btn-primary" onclick="generateViability()">
+              <span>&#9881;</span> Assess Viability
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Roadmap Section -->
+      <div id="section-roadmap" class="section">
+        <div class="page-header">
+          <h2>Product Roadmap</h2>
+          <p>Generate a phased roadmap with milestones, timelines, dependencies, and resource allocation.</p>
+        </div>
+
+        <div class="section-label">Examples</div>
+        <div id="roadmap-examples" class="example-grid"></div>
+
+        <div class="section-label">Describe your product</div>
+        <div class="card">
+          <div class="tool-source-toggle">
+            <button class="source-btn active" onclick="toggleToolSource(this, 'roadmap', 'text')">From text</button>
+            <button class="source-btn" onclick="toggleToolSource(this, 'roadmap', 'prd')">From PRD</button>
+          </div>
+          <div id="roadmap-text-input" class="tool-input-area">
+            <textarea id="roadmap-input" class="editor-textarea" placeholder="Describe your product features, priorities, and timeline expectations..."></textarea>
+          </div>
+          <div id="roadmap-prd-input" class="tool-input-area" style="display:none;">
+            <p class="prd-source-status" id="roadmap-prd-status">No PRD loaded. Generate one first.</p>
+          </div>
+          <div class="card-actions">
+            <button id="roadmap-btn" class="btn btn-primary" onclick="generateRoadmap()">
+              <span>&#9776;</span> Generate Roadmap
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pitch Deck Section -->
+      <div id="section-pitch" class="section">
+        <div class="page-header">
+          <h2>Pitch Deck</h2>
+          <p>Generate a slide-by-slide investor pitch deck with speaker notes and visual suggestions.</p>
+        </div>
+
+        <div class="section-label">Examples</div>
+        <div id="pitch-examples" class="example-grid"></div>
+
+        <div class="section-label">Describe your product</div>
+        <div class="card">
+          <div class="tool-source-toggle">
+            <button class="source-btn active" onclick="toggleToolSource(this, 'pitch', 'text')">From text</button>
+            <button class="source-btn" onclick="toggleToolSource(this, 'pitch', 'prd')">From PRD</button>
+          </div>
+          <div id="pitch-text-input" class="tool-input-area">
+            <textarea id="pitch-input" class="editor-textarea" placeholder="Describe your product, business model, team, and funding needs..."></textarea>
+          </div>
+          <div id="pitch-prd-input" class="tool-input-area" style="display:none;">
+            <p class="prd-source-status" id="pitch-prd-status">No PRD loaded. Generate one first.</p>
+          </div>
+          <div class="card-actions">
+            <button id="pitch-btn" class="btn btn-primary" onclick="generatePitchDeck()">
+              <span>&#9733;</span> Generate Pitch Deck
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Results Section -->
       <div id="section-results" class="section">
         <div class="page-header">
@@ -128,7 +285,7 @@
         <div id="results-content">
           <div class="empty-state">
             <div class="empty-icon">&#128196;</div>
-            <p>No results yet. Use the Pipeline, PRD Generator, or Design Prompts to get started.</p>
+            <p>No results yet. Use the Pipeline, PRD Generator, or any analysis tool to get started.</p>
           </div>
         </div>
       </div>
