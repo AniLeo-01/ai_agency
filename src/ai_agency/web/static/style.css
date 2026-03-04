@@ -838,6 +838,614 @@ textarea::placeholder {
   font-size: 0.9rem;
 }
 
+/* === Sidebar divider === */
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 12px;
+}
+
+/* === Tool source toggle (text vs PRD) === */
+.tool-source-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-input);
+  border-radius: 6px;
+  padding: 2px;
+  margin-bottom: 16px;
+  width: fit-content;
+}
+
+.source-btn {
+  padding: 6px 16px;
+  background: none;
+  border: none;
+  border-radius: 5px;
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.source-btn:hover {
+  color: var(--text);
+}
+
+.source-btn.active {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.prd-source-status {
+  font-size: 0.87rem;
+  padding: 16px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* === Badge === */
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-accent {
+  background: var(--accent-glow);
+  color: var(--accent);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+/* === Visualization panels === */
+.viz-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.viz-panel {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.viz-panel h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* === Score bars (for opportunity & viability scores) === */
+.score-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.score-bar-label {
+  flex: 0 0 140px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.score-bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-hover);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.score-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #a78bfa);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.score-bar-value {
+  flex: 0 0 60px;
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 600;
+  text-align: right;
+}
+
+.score-total {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-align: right;
+}
+
+/* === Market funnel === */
+.market-funnel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.funnel-level {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.funnel-tam {
+  width: 100%;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.funnel-sam {
+  width: 75%;
+  background: rgba(99, 102, 241, 0.25);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+}
+
+.funnel-som {
+  width: 50%;
+  background: rgba(99, 102, 241, 0.35);
+  border: 1px solid rgba(99, 102, 241, 0.5);
+}
+
+.funnel-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.funnel-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* === Data tables (for projections, risks, etc.) === */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.data-table th,
+.data-table td {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.data-table th {
+  background: var(--bg-hover);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(99, 102, 241, 0.05);
+}
+
+/* === Feature matrix cells === */
+.cell-none {
+  color: var(--text-dim);
+}
+
+.cell-basic {
+  color: var(--text-muted);
+}
+
+.cell-advanced {
+  color: var(--success);
+}
+
+.cell-superior {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* === SWOT grid === */
+.swot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.swot-quadrant {
+  padding: 16px;
+  border-radius: var(--radius);
+}
+
+.swot-quadrant h4 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+}
+
+.swot-strengths {
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.swot-strengths h4 {
+  color: var(--success);
+}
+
+.swot-weaknesses {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.swot-weaknesses h4 {
+  color: var(--error);
+}
+
+.swot-opportunities {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.swot-opportunities h4 {
+  color: var(--accent);
+}
+
+.swot-threats {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.swot-threats h4 {
+  color: var(--warning);
+}
+
+.swot-item {
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.swot-impact {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  margin-right: 4px;
+  color: var(--text-dim);
+}
+
+/* === Positioning quote === */
+.positioning-quote {
+  padding: 16px 20px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-glow);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* === Verdict badges (viability) === */
+.verdict-great {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.verdict-good {
+  background: rgba(34, 197, 94, 0.06);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.verdict-caution {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.verdict-bad {
+  background: var(--error-bg);
+  color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* === Resource rows (viability) === */
+.resource-row {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.resource-row:last-child {
+  border-bottom: none;
+}
+
+.resource-row strong {
+  font-size: 0.85rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.resource-detail {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* === Risk table highlights === */
+.risk-critical td:first-child {
+  border-left: 3px solid var(--error);
+}
+
+.risk-high td:first-child {
+  border-left: 3px solid var(--warning);
+}
+
+.risk-medium td:first-child {
+  border-left: 3px solid var(--accent);
+}
+
+/* === Roadmap timeline === */
+.roadmap-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.roadmap-phase {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.phase-connector {
+  width: 2px;
+  height: 24px;
+  background: var(--accent);
+  margin: 0 auto;
+}
+
+.phase-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.phase-number {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  background: var(--accent-glow);
+  padding: 3px 10px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.phase-header h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.phase-duration {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--bg-hover);
+  padding: 3px 10px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.phase-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.phase-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.roadmap-feature {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.roadmap-feature.prio-critical {
+  border-color: var(--error);
+  color: var(--error);
+  background: var(--error-bg);
+}
+
+.roadmap-feature.prio-high {
+  border-color: var(--warning);
+  color: var(--warning);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.roadmap-feature.prio-medium {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.feature-effort {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-right: 4px;
+}
+
+.phase-milestones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.roadmap-milestone {
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: var(--success-bg);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: var(--success);
+  font-weight: 600;
+}
+
+/* === Pitch deck slides grid === */
+.pitch-deck-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.pitch-slide {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.pitch-slide:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.slide-number {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.slide-type {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.pitch-slide h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.slide-headline {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* === Slide detail (modal) === */
+.slide-detail {
+  line-height: 1.7;
+}
+
+.slide-detail-type {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.slide-detail-headline {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.slide-detail-section {
+  margin-bottom: 20px;
+}
+
+.slide-detail-section h4 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.slide-detail-section ul {
+  margin-left: 20px;
+}
+
+.slide-detail-section li {
+  font-size: 0.87rem;
+  margin-bottom: 4px;
+}
+
+.speaker-notes {
+  font-size: 0.87rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 12px 16px;
+  background: var(--bg-input);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
 /* === Responsive === */
 @media (max-width: 900px) {
   .sidebar {
@@ -846,5 +1454,11 @@ textarea::placeholder {
   .main {
     margin-left: 0;
     padding: 20px;
+  }
+  .viz-grid {
+    grid-template-columns: 1fr;
+  }
+  .swot-grid {
+    grid-template-columns: 1fr;
   }
 }
