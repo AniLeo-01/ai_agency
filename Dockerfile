@@ -30,6 +30,8 @@ WORKDIR /app
 # Copy the virtualenv from builder
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+# Ensure volume-mounted source takes priority over installed package
+ENV PYTHONPATH="/app/src:$PYTHONPATH"
 
 # Copy source (needed for volume-mount override in dev, and as default in prod)
 COPY src/ src/
@@ -50,4 +52,4 @@ FROM runtime AS web
 EXPOSE 8000
 
 ENTRYPOINT ["uvicorn"]
-CMD ["ai_agency.web.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["ai_agency.web.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/src"]

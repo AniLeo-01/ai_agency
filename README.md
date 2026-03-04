@@ -87,6 +87,32 @@ Set these in your `.env` file:
 | `ANTHROPIC_API_KEY` | Anthropic API key | — |
 | `OPENAI_API_KEY` | OpenAI API key | — |
 | `AI_MODEL` | Model override | Claude Sonnet 4 / GPT-4o |
+| `STITCH_ACCESS_TOKEN` | Google Stitch access token | — |
+| `STITCH_PROJECT_ID` | Google Cloud project ID | — |
+
+### Google Stitch Setup
+
+To enable the Stitch design generation integration:
+
+1. Enable the Stitch API in Google Cloud:
+   ```bash
+   gcloud auth login
+   gcloud config set project YOUR_PROJECT_ID
+   gcloud beta services mcp enable stitch.googleapis.com
+   ```
+
+2. Get an access token:
+   ```bash
+   gcloud auth application-default print-access-token
+   ```
+
+3. Add to your `.env`:
+   ```
+   STITCH_ACCESS_TOKEN=your-token-here
+   STITCH_PROJECT_ID=your-gcp-project-id
+   ```
+
+4. In the web UI, generate design prompts, then click **Send to Stitch** to create UI designs.
 
 ## Docker
 
