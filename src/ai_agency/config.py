@@ -109,3 +109,7 @@ def get_stitch_token() -> str:
 
 def get_stitch_project_id() -> str:
     return os.getenv("STITCH_PROJECT_ID", "")
+
+
+def get_stitch_api_key() -> str:
+    return os.getenv("STITCH_API_KEY", "")

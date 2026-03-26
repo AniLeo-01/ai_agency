@@ -253,26 +253,36 @@ async def api_samples():
 @app.get("/api/stitch/status")
 async def api_stitch_status():
     """Check if Stitch is configured and return project list."""
-    token = get_stitch_token()
-    if not token:
+    from ai_agency.config import get_stitch_api_key
+    from ai_agency.integrations.stitch import StitchClient
+
+    api_key = get_stitch_api_key()
+    token = "" if api_key else get_stitch_token()
+    if not api_key and not token:
         return {
             "configured": False,
-            "error": "Set STITCH_ACCESS_TOKEN in .env",
+            "error": "Set STITCH_API_KEY or STITCH_ACCESS_TOKEN in .env",
         }
     try:
-        from ai_agency.integrations.stitch import StitchClient
-
-        project_id = get_stitch_project_id()
-        client = StitchClient(token, project_id)
+        if api_key:
+            client = StitchClient(api_key=api_key)
+        else:
+            project_id = get_stitch_project_id()
+            client = StitchClient(access_token=token, project_id=project_id)
         projects = client.list_projects()
-        return {"configured": True, "projects": projects, "gcp_project": project_id}
+        return {
+            "configured": True,
+            "projects": projects,
+            "auth_method": "api_key" if api_key else "oauth",
+            "gcp_project": "" if api_key else get_stitch_project_id(),
+        }
     except Exception as e:
         error_str = str(e)
-        if "401" in error_str:
+        if "401" in error_str or "403" in error_str:
             return {
                 "configured": True,
                 "auth_error": True,
-                "error": "Access token expired. Run: gcloud auth application-default print-access-token",
+                "error": "Auth failed. Check STITCH_API_KEY, or refresh OAuth: gcloud auth application-default print-access-token",
             }
         return {"configured": False, "error": error_str}
 
