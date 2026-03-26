@@ -11,10 +11,14 @@ TIMEOUT_S = 180  # 3 minutes per request (design generation is slow)
 class StitchClient:
     """Client for the Google Stitch JSON-RPC API."""
 
-    def __init__(self, access_token: str, project_id: str = "") -> None:
-        if not access_token:
-            raise ValueError("STITCH_ACCESS_TOKEN is not configured.")
+    def __init__(self, access_token: str = "", project_id: str = "", api_key: str = "") -> None:
+        if not access_token and not api_key:
+            raise ValueError(
+                "Stitch credentials not configured. "
+                "Set STITCH_API_KEY or STITCH_ACCESS_TOKEN in .env"
+            )
         self.access_token = access_token
+        self.api_key = api_key
         self.project_id = project_id
         self._client = httpx.Client(timeout=TIMEOUT_S)
 
@@ -26,14 +30,17 @@ class StitchClient:
             "params": params or {},
             "id": int(time.time() * 1000),
         }
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["X-Goog-Api-Key"] = self.api_key
+        else:
+            headers["Authorization"] = f"Bearer {self.access_token}"
+            if self.project_id:
+                headers["X-Goog-User-Project"] = self.project_id
         resp = self._client.post(
             STITCH_API_URL,
             json=body,
-            headers={
-                "Authorization": f"Bearer {self.access_token}",
-                "X-Goog-User-Project": self.project_id,
-                "Content-Type": "application/json",
-            },
+            headers=headers,
         )
         resp.raise_for_status()
         data = resp.json()
@@ -171,7 +178,11 @@ class StitchClient:
 
 def create_stitch_client() -> StitchClient:
     """Factory: create a StitchClient from environment config."""
-    from ai_agency.config import get_stitch_project_id, get_stitch_token
+    from ai_agency.config import get_stitch_api_key, get_stitch_project_id, get_stitch_token
+
+    api_key = get_stitch_api_key()
+    if api_key:
+        return StitchClient(api_key=api_key)
 
     return StitchClient(
         access_token=get_stitch_token(),
