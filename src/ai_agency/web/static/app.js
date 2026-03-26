@@ -1356,7 +1356,8 @@ function getSelectedStitchScreens() {
 
 async function runStitchGeneration() {
   const selectedScreens = getSelectedStitchScreens();
-  const screenCount = Object.keys(selectedScreens).length;
+  const screenNames = Object.keys(selectedScreens);
+  const screenCount = screenNames.length;
   if (screenCount === 0) {
     toast("Select at least one screen", "error");
     return;
@@ -1377,7 +1378,6 @@ async function runStitchGeneration() {
       return;
     }
 
-    // Extract project ID from response
     const projectId = extractProjectId(createRes.project);
     if (!projectId) {
       hideLoader();
@@ -1385,26 +1385,204 @@ async function runStitchGeneration() {
       return;
     }
 
-    // Step 2: Generate selected screens
-    showLoader("Generating designs in Stitch...", `This may take several minutes (${screenCount} screens)`);
-
-    const data = await API.post("/api/stitch/generate", {
-      project_id: projectId,
-      screens: selectedScreens,
-    });
     hideLoader();
 
-    if (!data.success) {
-      toast(`Stitch error: ${data.error}`, "error");
-      return;
-    }
-
-    toast(`Stitch: ${data.succeeded}/${data.total} screens generated!`);
-    renderStitchResults(data, projectId);
+    // Step 2: Render placeholder cards and navigate immediately
+    _renderGeneratingPlaceholders(screenNames, projectId);
     navigate("section-results");
+
+    // Step 3: Stream results via SSE
+    await _streamStitchGenerate("/api/stitch/generate", {
+      project_id: projectId,
+      screens: selectedScreens,
+    }, projectId);
   } catch (err) {
     hideLoader();
     toast(`Stitch request failed: ${err.message}`, "error");
+  }
+}
+
+/**
+ * Render placeholder "Generating..." cards for all screen names.
+ */
+function _renderGeneratingPlaceholders(screenNames, projectId) {
+  const container = document.getElementById("results-content");
+  const cardsHTML = screenNames.map(name => `
+    <div class="stitch-result-card" data-stitch-name="${escapeAttr(name)}">
+      <div class="stitch-preview"><div class="stitch-preview-loading">Generating...</div></div>
+      <div class="stitch-result-info">
+        <h4>${escapeHTML(name)}</h4>
+        <p style="color:var(--text-muted);font-size:0.82rem;">Waiting for Stitch...</p>
+      </div>
+    </div>`).join("");
+
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-header" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h3 style="margin:0;">Stitch Design Results</h3>
+          <span id="stitch-stream-status" style="color:var(--text-muted);font-size:0.82rem;">Generating 0/${screenNames.length} screens...</span>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="stitch-stat-total">${screenNames.length}</div><div class="stat-label">Prompts</div></div>
+        <div class="stat-card"><div class="stat-value" id="stitch-stat-done">0</div><div class="stat-label">Done</div></div>
+        <div class="stat-card"><div class="stat-value" id="stitch-stat-failed">0</div><div class="stat-label">Failed</div></div>
+      </div>
+      <div class="stitch-results-grid" id="stitch-stream-grid">${cardsHTML}</div>
+    </div>
+  `;
+
+  document.getElementById("results-title").textContent = "Stitch Results";
+  document.getElementById("results-subtitle").textContent = "Generating screens in Google Stitch...";
+}
+
+/**
+ * Build the final HTML for a single completed screen card.
+ */
+function _buildScreenCard(name, result, projectId) {
+  const screens = extractScreenData(result);
+  if (screens.length === 0) {
+    let errMsg = "";
+    if (result.content && Array.isArray(result.content)) {
+      for (const item of result.content) {
+        if (item.type === "text" && item.text) { errMsg = item.text; break; }
+      }
+    }
+    const isError = !!errMsg;
+    return `
+      <div class="stitch-result-card${isError ? " stitch-result-error" : ""}" data-stitch-name="${escapeAttr(name)}">
+        <div class="stitch-preview"><div class="stitch-preview-empty">${isError ? "Generation failed" : "Preview unavailable"}</div></div>
+        <div class="stitch-result-info">
+          <h4>${escapeHTML(name)}</h4>
+          <p style="color:var(${isError ? "--error" : "--success"});font-size:0.82rem;">${isError ? escapeHTML(errMsg) : "Generated successfully"}</p>
+          ${isError ? `<div class="stitch-result-actions"><button class="btn btn-primary btn-sm" onclick="retryStitchScreen('${escapeAttr(name)}')">Retry</button></div>` : ""}
+        </div>
+      </div>`;
+  }
+  return screens.map((s, si) => {
+    const label = s.title || name;
+    const codeKey = s.id || `screen_${si}`;
+    if (s.codeUrl) _stitchCodeUrls[codeKey] = s.codeUrl;
+    const imgSrc = s.id
+      ? `/api/stitch/screen/${encodeURIComponent(projectId)}/${encodeURIComponent(s.id)}/image`
+      : "";
+    const previewHTML = (s.imageUrl || s.id)
+      ? `<img src="${escapeAttr(imgSrc)}" alt="${escapeAttr(label)}" class="stitch-preview-img" onclick="viewStitchPreview('${escapeAttr(projectId)}','${escapeAttr(s.id)}','${escapeAttr(label)}')" onerror="this.parentNode.innerHTML='<div class=\\'stitch-preview-empty\\'>Preview unavailable</div>'" />`
+      : `<div class="stitch-preview-empty">No preview</div>`;
+    const actions = s.id
+      ? `<button class="btn btn-primary btn-sm" onclick="viewStitchCode('${escapeAttr(projectId)}','${escapeAttr(s.id)}')">View Code</button>
+         <button class="btn btn-sm" onclick="downloadStitchCode('${escapeAttr(projectId)}','${escapeAttr(s.id)}','${escapeAttr(label)}')">Download</button>
+         <button class="btn btn-sm" onclick="showEditScreenModal('${escapeAttr(projectId)}','${escapeAttr(s.id)}','${escapeAttr(label)}')">Edit</button>
+         <button class="btn btn-sm btn-danger" onclick="deleteStitchScreen('${escapeAttr(projectId)}','${escapeAttr(s.id)}','${escapeAttr(label)}')">Delete</button>`
+      : "";
+    return `
+      <div class="stitch-result-card" data-project="${escapeAttr(projectId)}" data-screen="${escapeAttr(s.id || "")}" data-stitch-name="${escapeAttr(name)}">
+        <div class="stitch-preview">${previewHTML}</div>
+        <div class="stitch-result-info">
+          <h4>${escapeHTML(label)}</h4>
+          <p style="color:var(--success);font-size:0.82rem;">Generated successfully</p>
+          <div class="stitch-result-actions">${actions}</div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function _buildErrorCard(name, errMsg) {
+  return `
+    <div class="stitch-result-card stitch-result-error" data-stitch-name="${escapeAttr(name)}">
+      <div class="stitch-result-info">
+        <h4>${escapeHTML(name)}</h4>
+        <p style="color:var(--error);font-size:0.82rem;">${escapeHTML(errMsg)}</p>
+        <div class="stitch-result-actions"><button class="btn btn-primary btn-sm" onclick="retryStitchScreen('${escapeAttr(name)}')">Retry</button></div>
+      </div>
+    </div>`;
+}
+
+/**
+ * Stream results from an SSE endpoint, replacing placeholder cards as they arrive.
+ */
+async function _streamStitchGenerate(url, body, projectId) {
+  let doneCount = 0;
+  let failCount = 0;
+  const total = body.screens ? Object.keys(body.screens).length : (body.screen_names ? body.screen_names.length : 0);
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  // If the response is JSON (error case), handle it directly
+  const contentType = res.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    const data = await res.json();
+    if (!data.success) {
+      toast(`Error: ${data.error}`, "error");
+    }
+    return;
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    // Process complete SSE lines
+    const lines = buffer.split("\n");
+    buffer = lines.pop(); // keep incomplete line in buffer
+
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      let event;
+      try { event = JSON.parse(line.slice(6)); } catch { continue; }
+
+      if (event.event === "screen") {
+        const grid = document.getElementById("stitch-stream-grid");
+        const placeholder = grid?.querySelector(`[data-stitch-name="${CSS.escape(event.name)}"]`);
+
+        let newHTML;
+        if (event.status === "ok") {
+          doneCount++;
+          newHTML = _buildScreenCard(event.name, event.result, projectId);
+        } else {
+          failCount++;
+          newHTML = _buildErrorCard(event.name, event.error);
+        }
+
+        if (placeholder) {
+          placeholder.outerHTML = newHTML;
+        } else if (grid) {
+          grid.insertAdjacentHTML("beforeend", newHTML);
+        }
+
+        // Update stats
+        const statDone = document.getElementById("stitch-stat-done");
+        const statFail = document.getElementById("stitch-stat-failed");
+        const status = document.getElementById("stitch-stream-status");
+        if (statDone) statDone.textContent = doneCount;
+        if (statFail) statFail.textContent = failCount;
+        if (status) status.textContent = `Generated ${doneCount + failCount}/${total} screens...`;
+      }
+
+      if (event.event === "done") {
+        const status = document.getElementById("stitch-stream-status");
+        if (status) status.textContent = `${doneCount} screen variants from ${event.total} prompts`;
+        document.getElementById("results-subtitle").textContent =
+          `${doneCount} screens generated in Google Stitch`;
+        toast(`Stitch: ${event.succeeded}/${event.total} screens generated!`);
+
+        // Reload full results to get merged data and re-render with retry-all button
+        const latest = await API.get("/api/stitch/latest");
+        if (latest.success !== false) {
+          renderStitchResults(latest, projectId);
+        }
+      }
+    }
   }
 }
 
@@ -1434,73 +1612,51 @@ function renderStitchResults(data, projectId) {
   const generated = Object.entries(data.generated || {});
   const errors = Object.entries(data.errors || {});
 
-  // Flatten: each prompt may have multiple screen variants
   let totalScreens = 0;
+  const failedNames = [];
   const cardsHTML = generated
     .map(([name, result]) => {
       const screens = extractScreenData(result);
       if (screens.length === 0) {
-        // Fallback card if we can't parse screens
-        return `
-          <div class="stitch-result-card">
-            <div class="stitch-preview"><div class="stitch-preview-empty">Preview unavailable</div></div>
-            <div class="stitch-result-info">
-              <h4>${escapeHTML(name)}</h4>
-              <p style="color:var(--success);font-size:0.82rem;">Generated successfully</p>
-            </div>
-          </div>`;
+        // Check if it's an error (quota exhausted, etc.)
+        let errMsg = "";
+        if (result.content && Array.isArray(result.content)) {
+          for (const item of result.content) {
+            if (item.type === "text" && item.text) { errMsg = item.text; break; }
+          }
+        }
+        if (errMsg) failedNames.push(name);
       }
       totalScreens += screens.length;
-      return screens.map((s, si) => {
-        const label = s.title || name;
-        const codeKey = s.id || `screen_${si}`;
-        // Store codeUrl in a lookup so viewStitchCode/downloadStitchCode can use it directly
-        if (s.codeUrl) _stitchCodeUrls[codeKey] = s.codeUrl;
-        const imgHTML = s.imageUrl
-          ? `<img src="${escapeAttr(s.imageUrl)}" alt="${escapeAttr(label)}" class="stitch-preview-img" onclick="viewStitchImage(this.src, '${escapeAttr(label)}')" onerror="this.parentNode.innerHTML='<div class=\\'stitch-preview-empty\\'>Preview unavailable</div>'" />`
-          : `<div class="stitch-preview-empty">No preview</div>`;
-        const actions = s.id
-          ? `<button class="btn btn-primary btn-sm" onclick="viewStitchCode('${escapeAttr(projectId)}','${escapeAttr(s.id)}')">View Code</button>
-             <button class="btn btn-sm" onclick="downloadStitchCode('${escapeAttr(projectId)}','${escapeAttr(s.id)}','${escapeAttr(label)}')">Download</button>
-             <button class="btn btn-sm" onclick="showEditScreenModal('${escapeAttr(projectId)}','${escapeAttr(s.id)}','${escapeAttr(label)}')">Edit</button>
-             <button class="btn btn-sm btn-danger" onclick="deleteStitchScreen('${escapeAttr(projectId)}','${escapeAttr(s.id)}','${escapeAttr(label)}')">Delete</button>`
-          : "";
-        return `
-          <div class="stitch-result-card" data-project="${escapeAttr(projectId)}" data-screen="${escapeAttr(s.id || "")}">
-            <div class="stitch-preview">${imgHTML}</div>
-            <div class="stitch-result-info">
-              <h4>${escapeHTML(label)}</h4>
-              <p style="color:var(--success);font-size:0.82rem;">Generated successfully</p>
-              <div class="stitch-result-actions">${actions}</div>
-            </div>
-          </div>`;
-      }).join("");
+      return _buildScreenCard(name, result, projectId);
     })
     .join("");
 
+  errors.forEach(([name]) => failedNames.push(name));
   const errorsHTML = errors
-    .map(([name, err]) => `
-      <div class="stitch-result-card stitch-result-error">
-        <div class="stitch-result-info">
-          <h4>${escapeHTML(name)}</h4>
-          <p style="color:var(--error);font-size:0.82rem;">${escapeHTML(err)}</p>
-        </div>
-      </div>`)
+    .map(([name, err]) => _buildErrorCard(name, err))
     .join("");
 
   const screenCount = totalScreens || data.succeeded;
+  const retryAllBtn = failedNames.length > 0
+    ? `<button class="btn btn-primary btn-sm" onclick="retryAllFailedStitch()" style="margin-left:auto;">Retry All Failed (${failedNames.length})</button>`
+    : "";
+  window._stitchFailedNames = failedNames;
   container.innerHTML = `
     <div class="card">
-      <div class="card-header">
-        <h3>Stitch Design Results</h3>
-        <span style="color:var(--text-muted);font-size:0.82rem;">${screenCount} screen variants from ${data.succeeded}/${data.total} prompts</span>
+      <div class="card-header" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h3 style="margin:0;">Stitch Design Results</h3>
+          <span id="stitch-stream-status" style="color:var(--text-muted);font-size:0.82rem;">${screenCount} screen variants from ${data.succeeded}/${data.total} prompts</span>
+        </div>
+        ${retryAllBtn}
       </div>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-value">${data.total}</div><div class="stat-label">Prompts</div></div>
-        <div class="stat-card"><div class="stat-value">${screenCount}</div><div class="stat-label">Screens</div></div>
-        <div class="stat-card"><div class="stat-value">${data.failed}</div><div class="stat-label">Failed</div></div>
+        <div class="stat-card"><div class="stat-value" id="stitch-stat-done">${screenCount}</div><div class="stat-label">Screens</div></div>
+        <div class="stat-card"><div class="stat-value" id="stitch-stat-failed">${data.failed + failedNames.length - errors.length}</div><div class="stat-label">Failed</div></div>
       </div>
-      <div class="stitch-results-grid">${cardsHTML}${errorsHTML}</div>
+      <div class="stitch-results-grid" id="stitch-stream-grid">${cardsHTML}${errorsHTML}</div>
     </div>
   `;
 
@@ -1509,6 +1665,58 @@ function renderStitchResults(data, projectId) {
     `${screenCount} screens generated in Google Stitch`;
 }
 
+
+async function retryStitchScreen(screenName) {
+  await _retryStitchScreens([screenName]);
+}
+
+async function retryAllFailedStitch() {
+  const names = window._stitchFailedNames || [];
+  if (names.length === 0) {
+    toast("No failed screens to retry", "error");
+    return;
+  }
+  await _retryStitchScreens(names);
+}
+
+async function _retryStitchScreens(screenNames) {
+  // Replace the failed cards with "Generating..." placeholders in-place
+  const grid = document.getElementById("stitch-stream-grid") ||
+    document.querySelector(".stitch-results-grid");
+  if (grid) {
+    for (const name of screenNames) {
+      const card = grid.querySelector(`[data-stitch-name="${CSS.escape(name)}"]`);
+      if (card) {
+        card.outerHTML = `
+          <div class="stitch-result-card" data-stitch-name="${escapeAttr(name)}">
+            <div class="stitch-preview"><div class="stitch-preview-loading">Generating...</div></div>
+            <div class="stitch-result-info">
+              <h4>${escapeHTML(name)}</h4>
+              <p style="color:var(--text-muted);font-size:0.82rem;">Retrying...</p>
+            </div>
+          </div>`;
+      }
+    }
+  }
+
+  // Get project_id from the current results
+  let projectId = "";
+  try {
+    const latest = await API.get("/api/stitch/latest");
+    projectId = latest.project_id || "";
+  } catch { /* fall through */ }
+
+  try {
+    await _streamStitchGenerate("/api/stitch/retry", { screen_names: screenNames }, projectId);
+  } catch (err) {
+    toast(`Retry request failed: ${err.message}`, "error");
+  }
+}
+
+function viewStitchPreview(projectId, screenId, name) {
+  const src = `/api/stitch/screen/${encodeURIComponent(projectId)}/${encodeURIComponent(screenId)}/image`;
+  viewStitchImage(src, name);
+}
 
 function viewStitchImage(src, name) {
   // Create a dedicated fullscreen image viewer with zoom/pan
